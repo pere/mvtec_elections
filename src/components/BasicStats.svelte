@@ -16,53 +16,7 @@ let stats={
     max:d3.max(f),
     avg:d3.mean(f)
 };
-export let create_scale=function()
-    {
-    //it shoudl be dynamic
-    var svg_width=300;
-    let svg=d3.selectAll('.scale_container svg');
-    svg.style('width', svg_width + 'px');
-                    svg.style('height', '90px');
-                    svg.select('defs').remove();
-                    var defs = svg.append("defs");
-                    var gradient = defs.append("linearGradient")
-                        .attr("id", "svgGradient")
-                        .attr("x1", "0%")
-                        .attr("y1", "0%")
-                        .attr("x2", "100%")
-                        .attr("y2", "0%");
-                        
-                    var sel_colorScale_filter = d3.scaleSequential(d3[selected_schema])
-                        .domain([0, 100]);   
 
-                    gradient.selectAll("stop")
-                                    .data(d3.range(0,100))
-                                    .enter().append("stop")
-                                    .attr("offset", function(d, i) {
-
-                                        return i + '%';
-                                    })
-                                    .attr("stop-color", function(d, i) {
-                                        if (i<10)
-                                        console.warn(i,sel_colorScale_filter(i))
-                                        return sel_colorScale_filter(i)
-                                    });
-                        var rect = svg.append("rect")
-                        .attr('class', 'rect_legend')
-                        .attr('width', svg_width)
-                        .attr('height', 10)
-                        .attr("fill", "url(#svgGradient)");    
-            }  
-            
-            
-            //create_scale();    
-// if (d3.selectAll('.scale_container svg').size()>0)
-// {
-//     alert('scale already created')
-//     create_scale();
-// }
-// else
-// {
 onMount(() => 
   {
     create_scale2(selected_schema,filtered_data);                             
@@ -88,7 +42,7 @@ onMount(() =>
              let svg_width=300;
             let svg=d3.selectAll('.scale_container svg');
             svg.style('width', svg_width + 'px');
-                    svg.style('height', '90px');
+                    svg.style('height', '40px');
                     svg.select('defs').remove();
                     var defs = svg.append("defs");
                     var gradient = defs.append("linearGradient")
@@ -132,18 +86,7 @@ onMount(() =>
                     return ((d*svg_width)/stats.max)-20
 
                 });
-               /*  for (var p in domain) {
-                    //if (p % 2 === 0) {
-                    if (p < domain.length - 1)
-                        x_pos.push(+(svg_width * domain[p]) / stats.max)
-                    else
-                        x_pos.push(+(svg_width * domain[p]) / (stats.max + 3))
-                        //}
-                } */
-               // console.info(domain, x_pos)
-                    //[5.5, 176, 275, 478.5]
-
-                //xValues = d3.set(domain).values();
+           
                 let xValues=domain;//.map((d)=>String(d));
                 console.warn(xValues)
                 console.log(range)
@@ -211,6 +154,10 @@ onMount(() =>
     </div>
 </section>
 <style>
+    line 
+  {
+    opacity: 0;
+  }
     path.domain,line 
     {
         opacity: 0;
