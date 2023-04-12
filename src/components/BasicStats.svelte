@@ -17,9 +17,14 @@ let stats={
     avg:d3.mean(f)
 };
 
+console.log(stats)
+
+                        
 onMount(() => 
   {
-    create_scale2(selected_schema,filtered_data);                             
+    create_scale2(selected_schema,filtered_data);     
+    console.log(stats)
+    
   });
 // }
 </script>
@@ -31,6 +36,7 @@ onMount(() =>
    
 	export function create_scale2(selected_schema,filtered_data) {
 
+        
         console.warn(filtered_data)
         let f=filtered_data.filter(d=>d.voted_proportion>0).map(d=>d.voted_proportion);
         let stats={

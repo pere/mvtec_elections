@@ -66,9 +66,9 @@
 
   {/if}
 
-  {#if selectedParty && selectedYear && selected_schema}
+  {#if selectedParty && selectedYear && filtered_data}
  
-  <BasicStats {filtered_data} sel_schema=selected_schema  {selected_schema}/>
+  <BasicStats {filtered_data}  {selected_schema}/>
   {#if filtered_data.length>0}
     <ScaleForm bind:selected_schema sel_schema=selected_schema on:change={create_scale2(selected_schema,filtered_data)}/> 
     {/if}
@@ -77,6 +77,10 @@
 	<Map {filtered_data} {selected_schema}/>
 </div>
 <style>
+  line 
+  {
+    opacity: 0;
+  }
     path.domain,line 
     {
         opacity: 0;
