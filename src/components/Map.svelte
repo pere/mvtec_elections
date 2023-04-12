@@ -1,0 +1,311 @@
+<script>
+  import { onMount, onDestroy } from 'svelte'
+  import { Map, NavigationControl, Popup,Marker,LngLat } from 'maplibre-gl';
+  import 'maplibre-gl/dist/maplibre-gl.css';
+  import jQuery from 'jquery';
+  import * as d3 from 'd3';
+  
+  import {munis}  from '../data/municipis.js';
+  import {observable_data}  from '../data/observable_data.js';
+  import { update_await_block_branch } from 'svelte/internal';
+
+  export let selectedYear;
+  export let selectedParty;
+  export let filtered_data;
+  export let selected_schema;
+  //'./data/municipis.js';  
+
+  let map;
+  let mapContainer;
+  let svg;
+  let featureElements;
+  
+  
+  let projectPoint=function(lon, lat) {
+              
+              var point = map.project(new LngLat(lon, lat));
+              this.stream.point(point.x, point.y);
+          }
+  let transform = d3.geoTransform({
+                point: projectPoint
+            });
+  let path = d3.geoPath().projection(transform);
+
+  let first_update=true;
+
+  
+  
+  $: if (filtered_data.length>0 && featureElements) 
+  {
+    //filtered_data=filtered_data.filter(d=>d.main_party=='ERC')
+    console.warn(filtered_data)
+/*
+    let colorScale =  d3.scaleLinear().domain([0,100])
+    
+                .interpolate(d3.interpolateHcl)
+                //blueish
+                .range(['#9de0e8', '#0f2fe2']);
+                */
+
+                let f=filtered_data.filter(d=>d.voted_proportion>0).map(d=>d.voted_proportion);
+        let stats={
+            min:d3.min(f),
+            max:d3.max(f),
+            avg:d3.mean(f)
+        };
+    let colorScale =  d3.scaleSequential(d3[selected_schema])
+            .domain([stats.min, stats.max])                
+
+      //munis properties.codiine
+      let arr=filtered_data.map(d=>d.municipality_code);
+      
+      featureElements
+                            .transition()
+                            .duration(1050)
+                            .delay(function(d, i) {
+                                return i * 5;
+                            })
+
+                            .attr('fill', function(d, i) {
+                              let codiine=String(d.properties.codiine);
+                              let pos=arr.indexOf(codiine);
+                             /*  if (pos>-1 && i<10)
+                              {
+                                console.info(typeof codiine,typeof filtered_data[pos].municipality_code)
+                              } */
+                              if (pos>-1)
+                              {
+                              
+                              return colorScale(filtered_data[pos].voted_proportion)
+                              }
+                              else
+                              {
+                                return 'black'
+                              }
+                              
+                              /* console.log(d)
+                              return '#bcca10' */
+                            })
+    
+  };
+  //console.log(observable_data_filtered)
+// sel_year=2015;
+// console.log(observable_data.filter(d=>d.year==2015))
+  onMount(() => {
+    const data = []
+    console.warn(filtered_data)
+    map = new Map({
+      container: 'map', // container id
+            //style: 'mapbox://styles/mapbox/streets-v8',
+            style: {
+                "version": 8,
+                "sources": {
+                    "geoserver": {
+                        "type": "vector",
+                        "tiles": [
+                            "https://geospatial.jrc.ec.europa.eu/geoserver/gwc/service/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&LAYER=hotspots:gaul_0_simplified&STYLE=&TILEMATRIX=EPSG:900913:{z}&TILEMATRIXSET=EPSG:900913&FORMAT=application/vnd.mapbox-vector-tile&TILECOL={x}&TILEROW={y}"
+                        ],
+                    }
+                },
+                "layers": [{
+                    "id": "gaul_0_simple",
+                    "source": "geoserver",
+                    "source-layer": "gaul_0_simplified",
+                    "type": "fill",
+                    // "minzoom": 4,
+                    // "maxzoom": 6,
+                    'paint': {
+                        "fill-color": "#a2a7ab",
+                        "fill-outline-color": "#87989c",
+                        "fill-opacity": 1
+
+                    }
+                }]
+            },
+            center: [1.05, 41.4],
+
+
+            //center: [141.15448379999998, 39.702053　],
+            zoom: 7.37,
+
+            attributionControl: false
+    });
+
+    map.addControl(new NavigationControl(), 'top-right');
+    function update()
+                {
+
+                featureElements = svg.selectAll("path.municipi")
+                featureElements.raise();
+                featureElements.attr("d", path);
+                if (first_update)
+                {
+                    first_update=false;
+                   /*  featureElements
+                            .transition()
+                            .duration(1050)
+                            .delay(function(d, i) {
+                                return i * 5;
+                            })
+
+                            .attr('fill', function(d, i) {
+                              return '#daa520'
+                            }) */
+                }
+              
+                
+                }
+    map.on('load', function () 
+    {
+      let fs=munis.features;
+      
+      const municipis_geojson = {
+                'type': 'FeatureCollection',
+                'features': fs
+            };
+            map.addSource('municipis_source', {
+                'type': 'geojson',
+                'data': municipis_geojson
+            });
+            console.log(observable_data)
+            console.warn(municipis_geojson)
+            //we just add but hidden, maybe we can add it later
+            map.addLayer({
+                'id': 'municipis',
+                'type': 'fill',
+                'source': 'municipis_source',
+                'layout': {
+                    // Make the layer visible by default.
+                    'visibility': 'visible'
+                },
+                'paint': {
+                    'fill-color': '#088',
+                    'fill-opacity': 0
+                  
+                }
+            }); 
+            console.info(map.getStyle().layers)
+
+            var container = map.getCanvasContainer();
+           
+            svg = d3.select(container).append("svg");
+            svg.style('position','absolute').style('width','100%').style('height','100%').style('top','0').style('left','0').style('z-index','1000');
+     
+          
+          
+          //             var marker = new Marker()
+          // .setLngLat([1.5,41])
+          // .addTo(map);
+
+            
+
+            featureElements = svg.selectAll("path.municipi")
+                .data(fs)
+                .enter()
+                .append("path")
+                // .classed('region', true)
+                .attr('class', function(d) {
+                    
+                    return 'municipi code_' + d.properties.municipi;
+                })
+                .attr('fill', 'black')
+                .attr('stroke', 'gray')
+                
+                /*
+                .attrs(
+                  {
+                      "stroke": "#ffff",
+                      "fill": "black",
+                      "opacity": 0.4,
+                      'stroke-width': 0.4
+                  }
+                ) 
+                */
+                .attr("code", function(d) {
+
+                    return d.properties.municipi;
+                });
+
+                update();
+                //alert(d3.selectAll('path').size())
+                //alert(jQuery('.municipi').length)
+            
+            
+
+      	});
+
+
+
+        map.on("viewreset", function() {
+                /* this_app.to_update=true;
+                this_app.first_update = false; */
+                //svg.classed("hidden", true);
+                svg.style('opacity', 0);
+                update();
+            });
+            map.on("movestart", function() {
+              svg.classed("hidden", true);
+                //svg.classed("hidden", true);
+                svg.style('opacity', 0);
+            });
+            map.on("rotate", function() {
+                svg.classed("hidden", true);
+                svg.style('opacity', 0);
+            });
+            map.on("moveend", function() {
+                /* this_app.to_update=true;
+                this_app.first_update = false; */
+                svg.classed("hidden", true);
+                svg.style('opacity', 0);
+                update();
+                svg.style('opacity', 1);
+                svg.classed("hidden", false);
+            })
+
+    // change pointer on mouse over states
+    map.on('mouseenter', 'associated-munis', function () {
+    	map.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.on('mouseleave', 'associated-munis', function () {
+    	map.getCanvas().style.cursor = '';
+    });
+
+  });
+
+  onDestroy(() => {
+    map.remove();
+  });
+</script>
+
+<div class="map-wrap">
+  <div class="map" id="map" bind:this={mapContainer}></div>
+</div>
+
+<style>
+
+svg,.maplibregl-canvas-container  svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+  .map-wrap {
+    position: relative;
+    float:right;
+    width: 70vw;
+    height: calc(100vh - 77px); /* calculate height of the screen minus the heading */
+  }
+
+  .map,.maplibregl-canvas  {
+    position: absolute!important;
+    width: 100%!important;
+    height: 100%!important;
+  }
+
+  .watermark {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 999;
+  }
+</style>

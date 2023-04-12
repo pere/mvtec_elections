@@ -1,0 +1,32 @@
+
+<script>
+  import { utcYears } from "d3";
+
+export let years;
+export let selectedYear;
+</script>
+<section class="lateralMenu">
+    <h1>This is my map Lateral menu with year {selectedYear}</h1>
+    <select class="menu" 
+					name="menu" 
+					id="menu" 
+					bind:value={selectedYear}>
+                    <option disabled selected value="">Select a year</option>
+	{#each years as year}
+			<option value={year}>{year}</option>
+		{/each}
+	</select>
+    {#if selectedYear}
+        <p>Selected year: {selectedYear}</p>
+    {/if}
+</section>
+
+
+<style>
+.lateralMenu
+{
+    width:18%;
+    height:100vh;
+    background-color: black;
+}
+</style>
