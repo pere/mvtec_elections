@@ -18,7 +18,6 @@
 
   const createColorScale = (selected_schema, min, max) => {
     return d3.scaleSequential(d3[selected_schema]).domain([min, max]);
-    //return d3.scaleSequential(d3[selected_schema]).domain([0, 100]);
   };
 
   const getYears = () => {
@@ -46,17 +45,11 @@
     .filter((d) => d.voted_proportion > 0)
     .map((d) => d.voted_proportion);
 
-    
   $: stats = {
     min: d3.min(f),
     max: d3.max(f),
     avg: d3.mean(f),
   };
-  $:{
-    console.info(filtered_data)
-    console.warn(f,stats)
-
-  }
   $: colorScale = createColorScale(selected_schema, stats.min, stats.max);
 
   $: console.log(filtered_data);
