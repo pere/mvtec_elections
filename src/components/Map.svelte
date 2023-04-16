@@ -7,11 +7,8 @@
   import { munis } from "../data/municipis.js";
   import { observable_data } from "../data/observable_data.js";
 
-  export let selectedYear;
-  export let selectedParty;
   export let filtered_data;
   export let colorScale;
-  //'./data/municipis.js';
 
   let map;
   let mapContainer;
@@ -42,24 +39,14 @@
 
       .attr("fill", function (d, i) {
         let codiine = String(d.properties.codiine);
-        let pos = arr.indexOf(codiine);
-        /*  if (pos>-1 && i<10)
-                              {
-                                console.info(typeof codiine,typeof filtered_data[pos].municipality_code)
-                              } */
+
         if (pos > -1) {
           return colorScale(filtered_data[pos].voted_proportion);
         } else {
           return "black";
         }
-
-        /* console.log(d)
-                              return '#bcca10' */
       });
   }
-  //console.log(observable_data_filtered)
-  // sel_year=2015;
-  // console.log(observable_data.filter(d=>d.year==2015))
   onMount(() => {
     const data = [];
     console.warn(filtered_data);
